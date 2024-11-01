@@ -8,17 +8,27 @@ import { fileURLToPath } from "url";
 import { dirname } from 'path';
 import { initializeSocket } from "./Socket.js"
 import http from "http"
+import cloudinary from 'cloudinary';
 
 const app = express()
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+
+// Configure Cloudinary
+
+
 
 app.use(cors({ origin: "*", credentials: true }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static('uploads'));
 dotenv.config()
 app.use(cors())
 app.use(express.json())
 app.use('/',userRoutes)
+
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 
 const server = http.createServer(app)
 initializeSocket(server)

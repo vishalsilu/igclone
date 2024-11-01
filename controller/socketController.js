@@ -7,17 +7,7 @@ import { fileURLToPath } from 'url';
 import Conversation from '../Schema/conversationSchema.js';
 import Post from '../Schema/postSchema.js';
 import Message from '../Schema/MessageSchema.js';
-
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-
-// Ensure the uploads directory exists
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
+import { uploadImage } from '../cloudinaryConfig.js';
 
 export const createConversation = async (socket, io, user1Id, user2Id) => {
   try {
@@ -114,16 +104,13 @@ export const getAllCon = async (socket, userId ) => {
 export const createPost = async (socket,io, userId, { description, image }) => {
   try {
     const buffer = Buffer.from(new Uint8Array(image));
-    const fileName = `${new mongoose.Types.ObjectId()}.jpg`;
-    const filePath = path.join(uploadsDir, fileName);
-
-    fs.writeFileSync(filePath, buffer);
+    const imageUrl = await uploadImage(buffer);
     const user = await User.findById(userId);
     if (!user) return;
 
     const newPost = new Post({
       _id: new mongoose.Types.ObjectId(),
-      image: `uploads/${fileName}`,
+      image: imageUrl,
       description: description || "",
       likes: [],
       comments: [],

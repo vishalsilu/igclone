@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
 import Conversation from "../Schema/conversationSchema.js";
 import Message from "../Schema/MessageSchema.js";
+import { uploadImage } from "../cloudinaryConfig.js";
+import fs from "fs"
 export const register = async (req, res) => {
 
     let image = ''
@@ -12,8 +14,14 @@ export const register = async (req, res) => {
     const uu = username.toLowerCase();
     const mm = email.toLowerCase();
 if(req.file){
-    image = req.file.path
+    const {path } = req.file; // Get original name and path
+
+    // Upload to Cloudinary
+    const imageBuffer = fs.readFileSync(path);
+   image  = await uploadImage(imageBuffer); // Use the path to upload
+     
 }
+
     // Check for missing fields
     if (!name || !email || !password || !username || !phone || !image) {
         return res.json({ alert: "Please enter all fields" });
@@ -39,7 +47,7 @@ if(req.file){
         password: hashedPassword,
         username: uu,
         phone,
-        image:`uploads/${image}`
+        image:image
     });
 
     try {
@@ -93,7 +101,8 @@ export const updateProfile = async (req, res) => {
     let image = ''
 
     if(req.file){
-        image = req.file.filename
+        const imageBuffer = fs.readFileSync(req.file.path);
+        image = await uploadImage(imageBuffer)
     }else if(req.body.image){
         image = req.body.image
     }
@@ -107,7 +116,7 @@ export const updateProfile = async (req, res) => {
         const userId = req.body._id; // Adjust this according to your auth setup
 
         // Update the user in the database
-        const updatedUser = await User.findByIdAndUpdate(userId,{image:`uploads/${image}`,name:name}, { new: true, runValidators: true }) 
+        const updatedUser = await User.findByIdAndUpdate(userId,{image:image,name:name}, { new: true, runValidators: true }) 
         .populate('notifications.user', 'username image')
 
         if (!updatedUser) {
