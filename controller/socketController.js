@@ -304,7 +304,7 @@ export const deletecomment = async (socket, data, io) => {
 export const viewProfile = async(socket, data, io) =>{
   try{
     const user = await User.findById(data.userId);
-    io.emit('viewprofile', user);
+    io.emit('viewprofile', {user:user,viewer:data.viewId});
     }catch(error){
       console.error(error);
       }
